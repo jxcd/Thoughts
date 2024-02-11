@@ -1,7 +1,6 @@
 package com.me.app.thoughts.pages.thought
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -42,7 +42,7 @@ fun ThoughtList() {
 @Composable
 private fun ThoughtItem(item: Thought) {
     val linesCount = item.message.lines().size
-    val maxLinesDefault = 2;
+    val maxLinesDefault = 2
     var maxLines by remember { mutableIntStateOf(maxLinesDefault) }
 
     Card(
@@ -65,10 +65,12 @@ private fun ThoughtItem(item: Thought) {
         }
 
         Row(
-            modifier = Modifier.padding(start = 8.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Image(
+            Icon(
                 modifier = Modifier
                     .size(64.dp)
                     .clickable {
@@ -79,7 +81,9 @@ private fun ThoughtItem(item: Thought) {
                     },
                 painter = painterResource(id = sentimentIconId(item.level)),
                 contentDescription = null,
+                tint = sentimentColor(item.level)
             )
+
 
             Text(
                 text = item.message,

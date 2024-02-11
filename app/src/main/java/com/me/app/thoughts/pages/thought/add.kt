@@ -1,7 +1,6 @@
 package com.me.app.thoughts.pages.thought
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -104,12 +104,7 @@ fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
         ) {
             doWhatList.map {
                 CheckItem(name = "${doWhatIcon(it)} $it", checked = doWhat == it) {
-                    if (doWhat == it) {
-                        doWhat = ""
-                    } else {
-                        doWhat = it
-                    }
-
+                    doWhat = if (doWhat == it) "" else it
                 }
             }
         }
@@ -141,10 +136,10 @@ fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
 
 @Composable
 fun SentimentIcon(level: Int, size: Int) {
-    Image(
+    Icon(
         modifier = Modifier.size(size.dp),
-        painter = painterResource(id = sentimentIconId(level)),
-        contentDescription = null
+        painter = painterResource(id = sentimentIconId(level)), contentDescription = null,
+        tint = sentimentColor(level)
     )
 }
 
