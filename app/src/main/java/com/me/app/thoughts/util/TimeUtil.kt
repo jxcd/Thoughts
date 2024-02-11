@@ -1,6 +1,7 @@
 package com.me.app.thoughts.util
 
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -13,6 +14,7 @@ import java.time.format.DateTimeFormatter
  */
 object TimeUtil {
     private val SIMPLE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    private val MONTH_DAY_FORMAT = DateTimeFormatter.ofPattern("MM-dd")
     private val HOUR_MINUTE_FORMAT = DateTimeFormatter.ofPattern("HH:mm")
 
     /**
@@ -33,5 +35,6 @@ object TimeUtil {
 
     fun format(timestamp: Long): String = SIMPLE_FORMAT.format(parse(timestamp))
 
+    fun formatMonthDay(date: LocalDate): String = MONTH_DAY_FORMAT.format(date)
     fun formatHourMinute(time: LocalTime): String = HOUR_MINUTE_FORMAT.format(time)
 }
