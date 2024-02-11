@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.me.app.thoughts.R
 import com.me.app.thoughts.dto.Thought
+import com.me.app.thoughts.dto.thoughtDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -43,12 +44,15 @@ const val TAG = "thought.add"
 
 val DO_LIST_MAP = mapOf(
     "无" to "🎈",
-    "休息" to "🛏",
+    "休息" to "💤",
     "阅读" to "📖",
     "思考" to "✨",
     "美食" to "🍔",
-    "购物" to "🛒",
     "运动" to "🚵‍♂️",
+    "代码" to "👨‍💻",
+    "视频" to "📺",
+    "游戏" to "🎮",
+    "购物" to "🛒",
 )
 
 // 添加碎碎念
@@ -62,16 +66,19 @@ fun Add(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
     var message by remember { mutableStateOf("") }
     var allowSubmit by remember { mutableStateOf(true) }
 
-    val idInc = remember { AtomicInteger() }
     val onSubmit: () -> Unit = {
-        val thought =
-            Thought(idInc.incrementAndGet(), level, doWhat, message, LocalDateTime.now())
-        Log.d(TAG, "submit $thought")
-
-        allowSubmit = false
-        doWhat = ""
-        message = ""
         scope.launch {
+            val thought = Thought(
+                level = level,
+                doWhat = doWhat.trim(),
+                message = message.trim()
+            )
+            thoughtDao().insert(thought)
+            Log.d(TAG, "submit $thought")
+
+            allowSubmit = false
+            doWhat = ""
+            message = ""
             delay(1000)
             allowSubmit = true
         }
