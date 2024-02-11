@@ -39,7 +39,6 @@ import com.me.app.thoughts.dto.thoughtDao
 import com.me.app.thoughts.util.TimeUtil
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.util.TreeMap
 import java.util.TreeSet
 
 @Composable
@@ -51,19 +50,21 @@ fun ThoughtList() {
     // 0: 按条显示, 1: 按天显示, 2: 按月显示
     var showMode by remember { mutableIntStateOf(1) }
 
-    LaunchedEffect(key1 = list.hashCode(), key2 = LocalDate.now()) {
-        val tempMap = TreeMap<LocalDate, MutableSet<Thought>>()
-        list.forEach {
-            val date = it.time().toLocalDate()
-            val set: MutableSet<Thought> =
-                tempMap.computeIfAbsent(date) { _ ->
-                    TreeSet<Thought>(Comparator.comparingLong<Thought?> { i -> i.timestamp }
-                        .reversed())
-                }
-            set.add(it)
+    LaunchedEffect(key1 = list.hashCode(), key2 = LocalDate.now(), key3 = showMode) {
+        if (showMode == 1) {
+            val tempMap = LinkedHashMap<LocalDate, MutableSet<Thought>>()
+            list.forEach {
+                val date = it.time().toLocalDate()
+                val set: MutableSet<Thought> =
+                    tempMap.computeIfAbsent(date) { _ ->
+                        TreeSet<Thought>(Comparator.comparingLong<Thought?> { i -> i.timestamp }
+                            .reversed())
+                    }
+                set.add(it)
+            }
+            groupByDate = tempMap
+            today = LocalDate.now()
         }
-        groupByDate = tempMap
-        today = LocalDate.now()
     }
 
     Row(
@@ -95,6 +96,7 @@ fun ThoughtList() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThoughtOnDay(date: LocalDate, thoughts: Set<Thought>, today: LocalDate) {
+    val recentDays = 3
 
     val mostLevel = thoughts.groupingBy { it.level }.eachCount().maxWithOrNull(compareBy(
         { it.value }, // 按出现次数排序
@@ -102,7 +104,7 @@ private fun ThoughtOnDay(date: LocalDate, thoughts: Set<Thought>, today: LocalDa
     ))?.key ?: 4
     val defaultColor = sentimentColor(mostLevel)
 
-    var show by remember { mutableStateOf(ChronoUnit.DAYS.between(date, today) <= 7) }
+    var show by remember { mutableStateOf(ChronoUnit.DAYS.between(date, today) <= recentDays) }
 
     Card(
         modifier = Modifier
