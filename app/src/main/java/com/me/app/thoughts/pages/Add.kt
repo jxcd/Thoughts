@@ -55,6 +55,8 @@ val DO_LIST_MAP = mapOf(
     "购物" to "🛒",
 )
 
+fun doWhatIcon(doWhat: String): String = DO_LIST_MAP.getOrDefault(doWhat, "🎈")
+
 // 添加碎碎念
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

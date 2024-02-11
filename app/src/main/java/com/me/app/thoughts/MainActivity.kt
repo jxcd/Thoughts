@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.me.app.thoughts.dto.AppDatabase
 import com.me.app.thoughts.dto.thoughtDao
-import com.me.app.thoughts.pages.Add
+import com.me.app.thoughts.pages.ThoughtList
 import com.me.app.thoughts.ui.theme.ThoughtsTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Add()
+                    ThoughtList()
                 }
             }
         }

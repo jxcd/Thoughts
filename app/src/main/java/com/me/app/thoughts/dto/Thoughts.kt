@@ -37,6 +37,6 @@ interface ThoughtDao {
     suspend fun delete(id: Int)
 
     @Query("SELECT * from Thought ORDER BY timestamp DESC")
-    fun getItems(): Flow<List<Thought>>
+    fun flow(): Flow<List<Thought>>
 
 }

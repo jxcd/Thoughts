@@ -31,7 +31,7 @@ object TimeUtil {
 
     fun parseDateTime(time: String): LocalDateTime = LocalDateTime.parse(time, SIMPLE_FORMAT)
 
-    fun format(timestamp: Long) = SIMPLE_FORMAT.format(Instant.ofEpochMilli(timestamp))
+    fun format(timestamp: Long): String = SIMPLE_FORMAT.format(parse(timestamp))
 
     fun formatHourMinute(time: LocalTime): String = HOUR_MINUTE_FORMAT.format(time)
 }
