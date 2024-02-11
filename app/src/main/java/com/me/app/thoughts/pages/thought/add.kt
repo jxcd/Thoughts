@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.me.app.thoughts.R
 import com.me.app.thoughts.dto.Thought
 import com.me.app.thoughts.dto.thoughtDao
 import kotlinx.coroutines.CoroutineScope
@@ -39,21 +39,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 const val TAG = "thought.add"
-
-val DO_LIST_MAP = mapOf(
-    "无" to "🎈",
-    "休息" to "💤",
-    "阅读" to "📖",
-    "思考" to "✨",
-    "美食" to "🍔",
-    "运动" to "🚵‍♂️",
-    "代码" to "👨‍💻",
-    "视频" to "📺",
-    "游戏" to "🎮",
-    "购物" to "🛒",
-)
-
-fun doWhatIcon(doWhat: String): String = DO_LIST_MAP.getOrDefault(doWhat, "🎈")
 
 // 添加碎碎念
 @OptIn(ExperimentalLayoutApi::class)
@@ -118,8 +103,13 @@ fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
             maxItemsInEachRow = maxItemsInEachRow,
         ) {
             doWhatList.map {
-                CheckItem(name = it, checked = doWhat == it) {
-                    doWhat = it
+                CheckItem(name = "${doWhatIcon(it)} $it", checked = doWhat == it) {
+                    if (doWhat == it) {
+                        doWhat = ""
+                    } else {
+                        doWhat = it
+                    }
+
                 }
             }
         }
@@ -149,36 +139,27 @@ fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
     }
 }
 
-fun sentimentId(level: Int) = when (level) {
-    1 -> R.drawable.sentiment_very_very_dissatisfied
-    2 -> R.drawable.sentiment_very_dissatisfied
-    3 -> R.drawable.sentiment_dissatisfied
-    4 -> R.drawable.sentiment_neutral
-    5 -> R.drawable.sentiment_satisfied
-    6 -> R.drawable.sentiment_satisfied_alt
-    7 -> R.drawable.sentiment_very_satisfied
-    else -> R.drawable.sentiment_neutral
-}
-
 @Composable
-fun SentimentIcon(level: Int, size: Int = 100) {
+fun SentimentIcon(level: Int, size: Int) {
     Image(
         modifier = Modifier.size(size.dp),
-        painter = painterResource(id = sentimentId(level)),
+        painter = painterResource(id = sentimentIconId(level)),
         contentDescription = null
     )
 }
 
 @Composable
 fun CheckItem(name: String, checked: Boolean, onChecked: () -> Unit) {
+    val width = 100.dp
+
     if (checked) {
-        FilledTonalButton(onClick = onChecked) {
+        FilledTonalButton(onClick = onChecked, modifier = Modifier.width(width)) {
             Text(text = name)
         }
         return
     }
 
-    OutlinedButton(onClick = onChecked) {
+    OutlinedButton(onClick = onChecked, modifier = Modifier.width(width)) {
         Text(text = name)
     }
 }
