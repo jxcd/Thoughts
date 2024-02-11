@@ -3,8 +3,8 @@ package com.me.app.thoughts.pages.thought
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.me.app.thoughts.dto.Thought
 import com.me.app.thoughts.dto.thoughtDao
@@ -40,8 +41,13 @@ import kotlinx.coroutines.launch
 
 const val TAG = "thought.add"
 
+@Preview
+@Composable
+fun View() {
+    AddThought()
+}
+
 // 添加碎碎念
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
     val scope = CoroutineScope(Dispatchers.Main)
@@ -74,9 +80,9 @@ fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        SentimentIcon(level = level, size = 200)
+        SentimentIcon(level = level, size = 180)
 
         // 选择心情 1-7, 默认4
         Slider(
@@ -93,18 +99,15 @@ fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
         )
 
         // 选择在做什么
-        val maxItemsInEachRow = if (doWhatList.size % 4 < 3) 3 else 4
-
-        FlowRow(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(width),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            maxItemsInEachRow = maxItemsInEachRow,
-        ) {
-            doWhatList.map {
-                CheckItem(name = "${doWhatIcon(it)} $it", checked = doWhat == it) {
-                    doWhat = if (doWhat == it) "" else it
+        doWhatList.chunked(3).forEach { sub ->
+            Row(
+                modifier = Modifier.fillMaxWidth(width),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                sub.map {
+                    CheckItem(name = "${doWhatIcon(it)} $it", checked = doWhat == it) {
+                        doWhat = if (doWhat == it) "" else it
+                    }
                 }
             }
         }
@@ -121,15 +124,21 @@ fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
         )
 
         // 提交
-        Button(
-            onClick = onSubmit,
-            enabled = allowSubmit,
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .height(50.dp)
-                .padding(bottom = 10.dp),
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = "记录")
+            Button(
+                onClick = onSubmit,
+                enabled = allowSubmit && doWhat.isNotBlank(),
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .fillMaxWidth(0.8f)
+                    .height(50.dp)
+            ) {
+                Text(text = "记录")
+            }
         }
     }
 }

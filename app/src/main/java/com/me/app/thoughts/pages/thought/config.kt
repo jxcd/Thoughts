@@ -5,11 +5,11 @@ import com.me.app.thoughts.R
 
 val DO_LIST_MAP = mapOf(
     "无" to "🎈",
-    "休息" to "💤",
-    "阅读" to "📖",
-    "思考" to "✨",
     "美食" to "🍔",
     "运动" to "🚵‍♂️",
+    "休息" to "💤",
+    "思考" to "✨",
+    "学习" to "📖",
     "代码" to "👨‍💻",
     "视频" to "📺",
     "游戏" to "🎮",

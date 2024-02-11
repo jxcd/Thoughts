@@ -2,7 +2,6 @@ package com.me.app.thoughts.pages.thought
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,20 +48,14 @@ private fun ThoughtItem(item: Thought) {
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
         border = BorderStroke(2.dp, sentimentColor(item.level))
     ) {
-        Row(
-            modifier = Modifier.padding(start = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = TimeUtil.format(item.timestamp),
-                // text = "${TimeUtil.format(item.timestamp)} ${doWhatIcon(item.doWhat)}",
-                modifier = Modifier.height(20.dp),
-                fontSize = 14.sp,
-            )
-
-            Text(text = doWhatIcon(item.doWhat), fontSize = 24.sp)
-        }
+        Text(
+            // text = TimeUtil.format(item.timestamp),
+            text = "${TimeUtil.format(item.timestamp)} ${doWhatIcon(item.doWhat)}",
+            modifier = Modifier
+                .height(20.dp)
+                .padding(start = 16.dp, top = 4.dp),
+            fontSize = 14.sp,
+        )
 
         Row(
             modifier = Modifier
