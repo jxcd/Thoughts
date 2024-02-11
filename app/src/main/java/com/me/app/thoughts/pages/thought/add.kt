@@ -1,4 +1,4 @@
-package com.me.app.thoughts.pages
+package com.me.app.thoughts.pages.thought
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -37,8 +37,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.util.concurrent.atomic.AtomicInteger
 
 const val TAG = "thought.add"
 
@@ -60,7 +58,7 @@ fun doWhatIcon(doWhat: String): String = DO_LIST_MAP.getOrDefault(doWhat, "🎈"
 // 添加碎碎念
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun Add(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
+fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
     val scope = CoroutineScope(Dispatchers.Main)
 
     var level by remember { mutableIntStateOf(4) }
@@ -131,7 +129,7 @@ fun Add(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
             value = message, onValueChange = { message = it },
             label = { Text(text = "想再说点什么") },
             placeholder = { Text(text = "...") },
-            maxLines = 3,
+            maxLines = 2,
             modifier = Modifier
                 .fillMaxWidth(width)
                 .requiredHeight(200.dp)

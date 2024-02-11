@@ -1,4 +1,4 @@
-package com.me.app.thoughts.pages
+package com.me.app.thoughts.pages.thought
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,8 +50,8 @@ private fun ThoughtItem(item: Thought) {
 
             Text(
                 text = item.message,
-                fontSize = 20.sp,
-                maxLines = 3,
+                fontSize = if (item.message.lines().size > 1) 16.sp else 20.sp,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }
