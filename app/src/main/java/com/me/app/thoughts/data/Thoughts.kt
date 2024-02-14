@@ -1,5 +1,6 @@
 package com.me.app.thoughts.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Entity
 import androidx.room.Insert
@@ -14,11 +15,18 @@ import java.time.LocalDateTime
 data class Thought(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+    @ColumnInfo(defaultValue = "0", index = true)
+    val pid: Int = 0,
 
     val level: Int = 4,
     val doWhat: String = "",
     val message: String = "",
     val timestamp: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(defaultValue = "0")
+    val priority: Int = 0,
+    @ColumnInfo(defaultValue = "true")
+    val visible: Boolean = true,
 ) {
     fun time(): LocalDateTime = TimeUtil.parse(timestamp)
 }
@@ -34,7 +42,7 @@ interface ThoughtDao {
     @Query("DELETE FROM Thought where id = :id")
     suspend fun delete(id: Int)
 
-    @Query("SELECT * from Thought ORDER BY timestamp DESC")
+    @Query("SELECT * from Thought ORDER BY priority, timestamp DESC")
     fun flow(): Flow<List<Thought>>
 
 }
