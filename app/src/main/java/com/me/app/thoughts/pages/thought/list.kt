@@ -34,8 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.me.app.thoughts.dto.Thought
-import com.me.app.thoughts.dto.thoughtDao
+import com.me.app.thoughts.data.Thought
+import com.me.app.thoughts.data.thoughtDao
 import com.me.app.thoughts.util.TimeUtil
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

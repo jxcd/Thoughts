@@ -1,4 +1,4 @@
-package com.me.app.thoughts.dto
+package com.me.app.thoughts.data
 
 import android.content.Context
 import androidx.room.Database

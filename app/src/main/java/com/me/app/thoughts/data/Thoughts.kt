@@ -1,8 +1,6 @@
-package com.me.app.thoughts.dto
+package com.me.app.thoughts.data
 
-import androidx.room.ColumnInfo
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey

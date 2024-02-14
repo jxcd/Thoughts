@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.me.app.thoughts.dto.AppDatabase
-import com.me.app.thoughts.dto.thoughtDao
+import com.me.app.thoughts.data.AppDatabase
+import com.me.app.thoughts.data.thoughtDao
 import com.me.app.thoughts.pages.App
 import com.me.app.thoughts.ui.theme.ThoughtsTheme
 
