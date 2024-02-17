@@ -37,4 +37,7 @@ object TimeUtil {
 
     fun formatMonthDay(date: LocalDate): String = MONTH_DAY_FORMAT.format(date)
     fun formatHourMinute(time: LocalTime): String = HOUR_MINUTE_FORMAT.format(time)
+    fun timestamp(hour: Int, minute: Int = 0, second: Int = 0) =
+        LocalDate.now().atTime(hour, minute, second).atZone(ZoneId.systemDefault())
+            .toInstant().toEpochMilli()
 }

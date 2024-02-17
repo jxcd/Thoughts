@@ -31,6 +31,8 @@ data class Thought(
     fun time(): LocalDateTime = TimeUtil.parse(timestamp)
 }
 
+const val ORDER_BY = "priority DESC, timestamp DESC, id DESC"
+
 @Dao
 interface ThoughtDao {
     @Insert
@@ -42,7 +44,16 @@ interface ThoughtDao {
     @Query("DELETE FROM Thought where id = :id")
     suspend fun delete(id: Int)
 
-    @Query("SELECT * from Thought ORDER BY priority, timestamp DESC")
-    fun flow(): Flow<List<Thought>>
+    @Query("SELECT * from Thought where pid = :pid and timestamp >= :timestamp ORDER BY $ORDER_BY")
+    suspend  fun listByPidAndTimestamp(pid: Int = 0, timestamp: Long = TimeUtil.timestamp(0, 0)): List<Thought>
+
+    @Query("SELECT * from Thought where pid = :pid ORDER BY $ORDER_BY")
+    fun flowByPid(pid: Int): Flow<List<Thought>>
+
+    @Query("SELECT * from Thought where pid = :pid and visible = :visible ORDER BY $ORDER_BY")
+    fun flowByPidVisible(pid: Int, visible: Boolean = true): Flow<List<Thought>>
+
+    fun flow(pid: Int = 0, onlyVisible: Boolean = true): Flow<List<Thought>> =
+        if (onlyVisible) flowByPidVisible(pid, true) else flowByPid(pid)
 
 }
