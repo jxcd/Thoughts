@@ -105,6 +105,8 @@ private fun ThoughtOnDay(date: LocalDate, thoughts: Set<Thought>, today: LocalDa
     val defaultColor = sentimentColor(mostLevel)
 
     var show by remember { mutableStateOf(ChronoUnit.DAYS.between(date, today) <= recentDays) }
+    // todo show 时, 加载 subs
+    var subs : List<Thought> by remember { mutableStateOf(listOf()) }
 
     Card(
         modifier = Modifier
