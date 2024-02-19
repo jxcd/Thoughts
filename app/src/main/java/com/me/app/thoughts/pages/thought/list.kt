@@ -49,13 +49,15 @@ fun ThoughtList() {
     val list: List<Thought> = thoughtDao().flow().collectAsState(initial = emptyList()).value
     var groupByDate by remember { mutableStateOf(mapOf<LocalDate, Set<Thought>>()) }
     var today by remember { mutableStateOf(LocalDate.now()) }
-    var showSub by remember { mutableStateOf(true) }
 
-    // 0: 按条显示, 1: 按天显示, 2: 按月显示
-    var showMode by remember { mutableIntStateOf(1) }
+    // 是否显示子项
+    var displayChildren by remember { mutableStateOf(true) }
 
-    LaunchedEffect(key1 = list.hashCode(), key2 = LocalDate.now(), key3 = showMode) {
-        if (showMode == 1) {
+    // 是否按天显示
+    var displayByDay by remember { mutableStateOf(true) }
+
+    LaunchedEffect(key1 = list.hashCode(), key2 = LocalDate.now(), key3 = displayByDay) {
+        if (displayByDay) {
             val tempMap = LinkedHashMap<LocalDate, MutableSet<Thought>>()
             list.forEach {
                 val date = it.time().toLocalDate()
@@ -75,15 +77,15 @@ fun ThoughtList() {
         modifier = Modifier.padding(start = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = if (showMode == 1) "按天" else "按条")
-        Switch(checked = showMode == 1, onCheckedChange = { showMode = if (it) 1 else 0 })
+        Text(text = if (displayByDay) "按天" else "按条")
+        Switch(checked = displayByDay, onCheckedChange = { displayByDay = it })
 
-        Text(text = if (showSub) "显示子项" else "隐藏子项")
-        Switch(checked = showSub, onCheckedChange = { showSub = it })
+        Text(text = if (displayChildren) "显示子项" else "隐藏子项")
+        Switch(checked = displayChildren, onCheckedChange = { displayChildren = it })
     }
 
     LazyColumn() {
-        if (showMode == 1) {
+        if (displayByDay) {
             // 先不考虑性能问题, 后续需要通过分页按需加载, 但是问题是如何按天group后返回Flow
             items(items = groupByDate.keys.toList(), key = { it.toEpochDay() }) { date ->
                 groupByDate[date]?.let {
@@ -91,12 +93,18 @@ fun ThoughtList() {
                         date = date,
                         thoughts = it,
                         today = today,
-                        showSub = showSub,
+                        displayChildren = displayChildren,
                     )
                 }
             }
-        } else {
-            items(items = list, key = { it.id }) { ThoughtItem(item = it, showSub = showSub) }
+            return@LazyColumn
+        }
+
+        items(items = list, key = { it.id }) {
+            ThoughtItem(
+                item = it,
+                displayChildren = displayChildren
+            )
         }
     }
 }
@@ -107,14 +115,11 @@ private fun ThoughtOnDay(
     date: LocalDate,
     thoughts: Set<Thought>,
     today: LocalDate,
-    showSub: Boolean
+    displayChildren: Boolean
 ) {
     val recentDays = 3
 
-    val mostLevel = thoughts.groupingBy { it.level }.eachCount().maxWithOrNull(compareBy(
-        { it.value }, // 按出现次数排序
-        { it.key }    // 如果次数相同，则按 level 排序
-    ))?.key ?: 4
+    val mostLevel = mostLevel(thoughts)
     val defaultColor = sentimentColor(mostLevel)
 
     var show by remember { mutableStateOf(ChronoUnit.DAYS.between(date, today) < recentDays) }
@@ -157,7 +162,7 @@ private fun ThoughtOnDay(
                         .background(color = Color.LightGray)
                 )
                 thoughts.forEachIndexed { index, it ->
-                    ThoughtOnDayItem(item = it, show = show, showSub = showSub)
+                    ThoughtOnDayItem(item = it, displayChildren = displayChildren)
                     if (index != thoughts.size - 1) {
                         Spacer(
                             modifier = Modifier
@@ -175,6 +180,12 @@ private fun ThoughtOnDay(
     }
 }
 
+private fun mostLevel(thoughts: Collection<Thought>) =
+    thoughts.groupingBy { it.level }.eachCount().maxWithOrNull(compareBy(
+        { it.value }, // 按出现次数排序
+        { it.key }    // 如果次数相同，则按 level 排序
+    ))?.key ?: 4
+
 private fun briefDate(date: LocalDate, now: LocalDate = LocalDate.now()): String {
     if (date.year != now.year) {
         return date.toString()
@@ -185,26 +196,35 @@ private fun briefDate(date: LocalDate, now: LocalDate = LocalDate.now()): String
 
 
 @Composable
-private fun ThoughtOnDayItem(item: Thought, show: Boolean, showSub: Boolean) {
+private fun ThoughtOnDayItem(item: Thought, displayChildren: Boolean) {
+    ThoughtItemMini(item = item)
+
+    ThoughtSubs(pid = item.id, displayChildren = displayChildren)
+}
+
+@Composable
+private fun ThoughtSubs(pid: Int, displayChildren: Boolean) {
     val scope = CoroutineScope(Dispatchers.IO)
 
     var subs: List<Thought> by remember { mutableStateOf(listOf()) }
 
-    LaunchedEffect(key1 = show, key2 = showSub) {
-        if (!showSub) {
-            subs = listOf()
-        } else if (show) {
+    LaunchedEffect(key1 = displayChildren) {
+        if (displayChildren) {
             scope.launch {
-                subs = thoughtDao().listByPidAndTimestamp(item.id)
+                subs = thoughtDao().listByPidAndTimestamp(pid)
             }
+        } else {
+            subs = listOf()
         }
 
     }
 
-    ThoughtItemMini(item = item)
-
     if (subs.isNotEmpty()) {
-        Card(modifier = Modifier.padding(start = 20.dp)) {
+        Card(
+            modifier = Modifier
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+                // .border(1.dp, color = sentimentColor(mostLevel(subs)))
+        ) {
             subs.forEach {
                 ThoughtItemMini(item = it)
             }
@@ -238,25 +258,11 @@ private fun ThoughtItemMini(item: Thought) {
 }
 
 @Composable
-private fun ThoughtItem(item: Thought, showSub: Boolean) {
+private fun ThoughtItem(item: Thought, displayChildren: Boolean) {
     val linesCount = item.message.lines().size
     val maxLinesDefault = 2
 
-    val scope = CoroutineScope(Dispatchers.IO)
-
     var maxLines by remember { mutableIntStateOf(maxLinesDefault) }
-    var subs: List<Thought> by remember { mutableStateOf(listOf()) }
-
-    LaunchedEffect(key1 = showSub) {
-        if (!showSub) {
-            subs = listOf()
-        } else {
-            scope.launch {
-                subs = thoughtDao().listByPidAndTimestamp(item.id)
-            }
-        }
-
-    }
 
     Card(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -300,12 +306,6 @@ private fun ThoughtItem(item: Thought, showSub: Boolean) {
             )
         }
 
-        if (subs.isNotEmpty()) {
-            Card(modifier = Modifier.padding(start = 20.dp)) {
-                subs.forEach {
-                    ThoughtItemMini(item = it)
-                }
-            }
-        }
+        ThoughtSubs(pid = item.id, displayChildren = displayChildren)
     }
 }
