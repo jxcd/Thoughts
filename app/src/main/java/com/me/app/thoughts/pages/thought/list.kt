@@ -37,6 +37,9 @@ import androidx.compose.ui.unit.sp
 import com.me.app.thoughts.data.Thought
 import com.me.app.thoughts.data.thoughtDao
 import com.me.app.thoughts.util.TimeUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.TreeSet
@@ -46,6 +49,7 @@ fun ThoughtList() {
     val list: List<Thought> = thoughtDao().flow().collectAsState(initial = emptyList()).value
     var groupByDate by remember { mutableStateOf(mapOf<LocalDate, Set<Thought>>()) }
     var today by remember { mutableStateOf(LocalDate.now()) }
+    var showSub by remember { mutableStateOf(true) }
 
     // 0: 按条显示, 1: 按天显示, 2: 按月显示
     var showMode by remember { mutableIntStateOf(1) }
@@ -73,6 +77,9 @@ fun ThoughtList() {
     ) {
         Text(text = if (showMode == 1) "按天" else "按条")
         Switch(checked = showMode == 1, onCheckedChange = { showMode = if (it) 1 else 0 })
+
+        Text(text = if (showSub) "显示子项" else "隐藏子项")
+        Switch(checked = showSub, onCheckedChange = { showSub = it })
     }
 
     LazyColumn() {
@@ -83,19 +90,25 @@ fun ThoughtList() {
                     ThoughtOnDay(
                         date = date,
                         thoughts = it,
-                        today = today
+                        today = today,
+                        showSub = showSub,
                     )
                 }
             }
         } else {
-            items(items = list, key = { it.id }) { ThoughtItem(item = it) }
+            items(items = list, key = { it.id }) { ThoughtItem(item = it, showSub = showSub) }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ThoughtOnDay(date: LocalDate, thoughts: Set<Thought>, today: LocalDate) {
+private fun ThoughtOnDay(
+    date: LocalDate,
+    thoughts: Set<Thought>,
+    today: LocalDate,
+    showSub: Boolean
+) {
     val recentDays = 3
 
     val mostLevel = thoughts.groupingBy { it.level }.eachCount().maxWithOrNull(compareBy(
@@ -104,9 +117,7 @@ private fun ThoughtOnDay(date: LocalDate, thoughts: Set<Thought>, today: LocalDa
     ))?.key ?: 4
     val defaultColor = sentimentColor(mostLevel)
 
-    var show by remember { mutableStateOf(ChronoUnit.DAYS.between(date, today) <= recentDays) }
-    // todo show 时, 加载 subs
-    var subs : List<Thought> by remember { mutableStateOf(listOf()) }
+    var show by remember { mutableStateOf(ChronoUnit.DAYS.between(date, today) < recentDays) }
 
     Card(
         modifier = Modifier
@@ -146,7 +157,7 @@ private fun ThoughtOnDay(date: LocalDate, thoughts: Set<Thought>, today: LocalDa
                         .background(color = Color.LightGray)
                 )
                 thoughts.forEachIndexed { index, it ->
-                    ThoughtItemMini(item = it)
+                    ThoughtOnDayItem(item = it, show = show, showSub = showSub)
                     if (index != thoughts.size - 1) {
                         Spacer(
                             modifier = Modifier
@@ -169,6 +180,36 @@ private fun briefDate(date: LocalDate, now: LocalDate = LocalDate.now()): String
         return date.toString()
     }
     return TimeUtil.formatMonthDay(date)
+
+}
+
+
+@Composable
+private fun ThoughtOnDayItem(item: Thought, show: Boolean, showSub: Boolean) {
+    val scope = CoroutineScope(Dispatchers.IO)
+
+    var subs: List<Thought> by remember { mutableStateOf(listOf()) }
+
+    LaunchedEffect(key1 = show, key2 = showSub) {
+        if (!showSub) {
+            subs = listOf()
+        } else if (show) {
+            scope.launch {
+                subs = thoughtDao().listByPidAndTimestamp(item.id)
+            }
+        }
+
+    }
+
+    ThoughtItemMini(item = item)
+
+    if (subs.isNotEmpty()) {
+        Card(modifier = Modifier.padding(start = 20.dp)) {
+            subs.forEach {
+                ThoughtItemMini(item = it)
+            }
+        }
+    }
 
 }
 
@@ -197,10 +238,25 @@ private fun ThoughtItemMini(item: Thought) {
 }
 
 @Composable
-private fun ThoughtItem(item: Thought) {
+private fun ThoughtItem(item: Thought, showSub: Boolean) {
     val linesCount = item.message.lines().size
     val maxLinesDefault = 2
+
+    val scope = CoroutineScope(Dispatchers.IO)
+
     var maxLines by remember { mutableIntStateOf(maxLinesDefault) }
+    var subs: List<Thought> by remember { mutableStateOf(listOf()) }
+
+    LaunchedEffect(key1 = showSub) {
+        if (!showSub) {
+            subs = listOf()
+        } else {
+            scope.launch {
+                subs = thoughtDao().listByPidAndTimestamp(item.id)
+            }
+        }
+
+    }
 
     Card(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -242,6 +298,14 @@ private fun ThoughtItem(item: Thought) {
                 maxLines = maxLines,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+
+        if (subs.isNotEmpty()) {
+            Card(modifier = Modifier.padding(start = 20.dp)) {
+                subs.forEach {
+                    ThoughtItemMini(item = it)
+                }
+            }
         }
     }
 }

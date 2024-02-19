@@ -65,7 +65,7 @@ fun View() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddThought(doWhatList: Collection<String> = DO_LIST_MAP.keys) {
-    val scope = CoroutineScope(Dispatchers.Main)
+    val scope = CoroutineScope(Dispatchers.IO)
 
     var level by remember { mutableIntStateOf(4) }
     var doWhat by remember { mutableStateOf("") }
